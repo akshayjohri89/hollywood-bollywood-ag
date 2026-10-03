@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hollywood-Bollywood Movie Guesser</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Montserrat:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <!-- Vercel Speed Insights -->
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+</head>
+<body>
+
+  <!-- Film Strip Decorative Borders -->
+  <div class="film-strip-border film-strip-left"></div>
+  <div class="film-strip-border film-strip-right"></div>
+
+  <!-- Confetti Canvas for Victory -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Top Header Navigation -->
+  <header class="game-header">
+    <div class="logo-container" id="logoBtn">
+      <span class="clapper-icon">🎬</span>
+      <div class="title-wrap">
+        <h1>Hollywood-Bollywood Movie Guesser</h1>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-badge" id="leaderboardBtn" title="View Leaderboard & Daily Ranks">
+        <span>🏆</span>
+        <span id="headerPoints">0 Pts</span>
+      </button>
+
+      <button class="btn-icon" id="rulesBtn" title="How to Play & Rules">
+        <span>❓</span>
+      </button>
+
+      <button class="btn-icon" id="soundBtn" title="Toggle Sound">
+        <span id="soundIcon">🔊</span>
+      </button>
+
+      <button class="btn-icon" id="profileBtn" title="Player Profile">
+        <span id="profileAvatar">🎬</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Game Stage -->
+  <main class="game-viewport">
+
+    <!-- HUD Banner: Level, Progress, Score -->
+    <section class="hud-banner">
+      <div class="hud-item">
+        <span class="hud-label">Level</span>
+        <span class="hud-val progress" id="hudLevelText">01 / 20</span>
+        <div class="hud-level-bar-wrap">
+          <div class="hud-level-bar-fill" id="hudLevelBarFill"></div>
+        </div>
+      </div>
+
+      <div class="hud-item text-center">
+        <span class="hud-label">Daily Streak</span>
+        <span class="hud-val" id="hudStreakText">🔥 1 Day</span>
+      </div>
+
+      <div class="hud-item text-right">
+        <span class="hud-label">Score</span>
+        <span class="hud-val gold" id="hudScoreText">0</span>
+      </div>
+    </section>
+
+    <!-- Marquee Theater Display (BOLLYWOOD / HOLLYWOOD Letter Striking) -->
+    <section class="marquee-theater">
+      <div class="marquee-meta-tag" id="marqueeCategoryTag">
+        <span id="marqueeCategoryIcon">🎬</span>
+        <span id="marqueeCategoryName">BOLLYWOOD</span>
+      </div>
+
+      <!-- Neon letters that get struck off on incorrect guesses -->
+      <div class="marquee-letters-grid" id="marqueeGrid">
+        <!-- Injected dynamically: B O L L Y W O O D or H O L L Y W O O D -->
+      </div>
+
+      <!-- Strike gauge and unused guess bonus counter -->
+      <div class="marquee-footer-info">
+        <div class="strikes-indicator" id="strikesIndicator">
+          <!-- 9 indicator dots -->
+        </div>
+        <div class="unused-guesses-indicator" id="unusedGuessesText">
+          Safe: <strong>9 / 9</strong> (+9 pts)
+        </div>
+      </div>
+
+      <!-- Incorrect Guesses Display: Shows letters guessed incorrectly -->
+      <div class="incorrect-guesses-bar" id="incorrectGuessesBar">
+        <span class="incorrect-label">WRONG GUESSES:</span>
+        <div class="incorrect-letters-list" id="incorrectLettersList">
+          <span class="no-wrong-text">None</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Movie Clapper Title & Letter Tiles -->
+    <section class="movie-card">
+      <div class="movie-header-details">
+        <!-- Difficulty level removed per request -->
+        <span class="tag-badge" id="movieYearTag">📅 Year: 2001</span>
+        <span class="tag-badge" id="movieGenreTag">🎭 Genre: Drama</span>
+      </div>
+
+      <!-- Movie Title Slots (revealed char by char) -->
+      <div class="movie-title-container" id="movieTitleContainer">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Clapper Clue / Hint Box (Kept in DOM but disabled via CSS) -->
+      <div class="hint-container" id="hintContainer">
+        <span class="hint-content" id="hintContent">💡 Need a clue? Unlock director / dialogue hint!</span>
+        <button class="hint-toggle-btn" id="hintToggleBtn">Show Clue</button>
+      </div>
+    </section>
+
+    <!-- Virtual Cinema Keyboard -->
+    <section class="keyboard-section" id="keyboardContainer">
+      <!-- Injected via JavaScript (QWERTY layout) -->
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal: Level Completed -->
+  <div class="modal-overlay" id="levelWinModal">
+    <div class="modal-dialog">
+      <div class="modal-icon-badge">🎉</div>
+      <h2 class="modal-title" id="winModalTitle">LEVEL CLEARED!</h2>
+      <p class="modal-desc" id="winModalDesc">You correctly guessed the movie!</p>
+
+      <div class="score-breakdown-card">
+        <div class="score-row">
+          <span>Movie Guessed</span>
+          <span class="score-row-val">+10 Pts</span>
+        </div>
+        <div class="score-row">
+          <span id="winUnusedBreakdownLabel">Unused Guesses (7 remaining)</span>
+          <span class="score-row-val" id="winUnusedBreakdownVal">+7 Pts</span>
+        </div>
+        <div class="score-row">
+          <span>Total Level Points</span>
+          <span class="score-row-val" id="winTotalBreakdownVal">+17 Pts</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="nextLevelBtn">Next Level (Enter ↵)</button>
+    </div>
+  </div>
+
+  <!-- Modal: Game Over (All 9 letters struck) -->
+  <div class="modal-overlay" id="gameOverModal">
+    <div class="modal-dialog">
+      <div class="modal-icon-badge">🎬💥</div>
+      <h2 class="modal-title" style="color: var(--neon-red);">CUT! GAME OVER</h2>
+      <p class="modal-desc">All letters in the marquee were struck out.</p>
+
+      <div class="score-breakdown-card">
+        <div class="score-row">
+          <span>The Movie Was:</span>
+          <span class="score-row-val" id="gameOverMovieTitle" style="color: var(--gold-light);">DANGAL</span>
+        </div>
+        <div class="score-row">
+          <span>Level Reached:</span>
+          <span class="score-row-val" id="gameOverLevel">Level 7 / 20</span>
+        </div>
+        <div class="score-row">
+          <span>Run Points:</span>
+          <span class="score-row-val" id="gameOverScore">85 Pts</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="retryGameBtn">Play Again</button>
+      <button class="btn-secondary" id="gameOverLeaderboardBtn">View Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- Modal: Grand 20-Level Victory -->
+  <div class="modal-overlay" id="victoryModal">
+    <div class="modal-dialog">
+      <div class="modal-icon-badge">🏆👑</div>
+      <h2 class="modal-title" style="color: var(--gold-glow);">GRAND PREMIERE CHAMPION!</h2>
+      <p class="modal-desc">Incredible! You survived all 20 levels and conquered Bollywood & Hollywood cinema!</p>
+
+      <div class="score-breakdown-card">
+        <div class="score-row">
+          <span>Total 20-Level Score</span>
+          <span class="score-row-val" id="victoryFinalScore">342 Pts</span>
+        </div>
+        <div class="score-row">
+          <span>Status Earned</span>
+          <span class="score-row-val" style="color: var(--neon-green);">Cinema Maestro 🎬</span>
+        </div>
+        <div class="score-row">
+          <span>Cumulative Career</span>
+          <span class="score-row-val" id="victoryCumulativeScore">+342 Added</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="victoryRestartBtn">Play Another Premiere</button>
+      <button class="btn-secondary" id="victoryLeaderboardBtn">Inspect Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- Modal: Leaderboard & Daily Standings -->
+  <div class="modal-overlay" id="leaderboardModal">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-icon-badge">🏆</div>
+      <h2 class="modal-title">CINEMA LEADERBOARD</h2>
+      <p class="modal-desc">Play every day to accumulate career points and earn prestigious cinema titles!</p>
+
+      <!-- Tabs: All Time Cumulative vs Today's Daily Run -->
+      <div class="leaderboard-tabs">
+        <button class="lb-tab-btn active" id="lbTabCumulative">All-Time Cumulative</button>
+        <button class="lb-tab-btn" id="lbTabDaily">Today's Daily Scores</button>
+      </div>
+
+      <!-- Leaderboard Scrollable List -->
+      <div class="leaderboard-list" id="leaderboardList">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <button class="btn-primary" id="closeLeaderboardBtn">Back to Game</button>
+    </div>
+  </div>
+
+  <!-- Modal: Player Profile & Name Customizer -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-dialog">
+      <div class="modal-icon-badge" id="profileModalAvatar">🎬</div>
+      <h2 class="modal-title">DIRECTOR'S PROFILE</h2>
+      <p class="modal-desc">Customize your cinephile persona on the daily leaderboard.</p>
+
+      <div style="width: 100%; text-align: left; margin-bottom: 16px;">
+        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Player Name</label>
+        <input type="text" id="playerNameInput" maxlength="16" placeholder="Enter cinema name" style="width: 100%; margin-top: 6px; padding: 10px 14px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-metallic); border-radius: 8px; color: #fff; font-size: 1rem;">
+      </div>
+
+      <div style="width: 100%; text-align: left; margin-bottom: 20px;">
+        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Choose Avatar</label>
+        <div id="avatarPicker" style="display: flex; gap: 8px; margin-top: 8px; justify-content: center; flex-wrap: wrap;">
+          <span class="avatar-option" data-avatar="🎬" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">🎬</span>
+          <span class="avatar-option" data-avatar="🍿" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">🍿</span>
+          <span class="avatar-option" data-avatar="🏆" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">🏆</span>
+          <span class="avatar-option" data-avatar="🎥" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">🎥</span>
+          <span class="avatar-option" data-avatar="👑" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">👑</span>
+          <span class="avatar-option" data-avatar="🕶️" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">🕶️</span>
+          <span class="avatar-option" data-avatar="🎭" style="font-size: 1.6rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">🎭</span>
+        </div>
+      </div>
+
+      <div class="score-breakdown-card" style="margin-bottom: 18px;">
+        <div class="score-row">
+          <span>Career Cumulative Points:</span>
+          <span class="score-row-val" id="profileCumulativeVal">0 Pts</span>
+        </div>
+        <div class="score-row">
+          <span>Active Daily Streak:</span>
+          <span class="score-row-val" id="profileStreakVal">🔥 1 Day</span>
+        </div>
+        <div class="score-row">
+          <span>Best Level Reached:</span>
+          <span class="score-row-val" id="profileMaxLevelVal">Level 1</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="saveProfileBtn">Save Profile</button>
+      <button class="btn-secondary" id="closeProfileBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Modal: How to Play & Rules -->
+  <div class="modal-overlay" id="rulesModal">
+    <div class="modal-dialog" style="text-align: left; max-width: 520px;">
+      <div class="modal-icon-badge" style="text-align: center;">📜</div>
+      <h2 class="modal-title" style="text-align: center;">HOW TO PLAY</h2>
+      <p class="modal-desc" style="text-align: center;">Classic Hangman with a Bollywood & Hollywood twist!</p>
+
+      <div style="font-size: 0.88rem; line-height: 1.6; color: #d0d4e4; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <div>
+          <strong style="color: var(--gold-glow);">1. The Goal:</strong>
+          Guess the movie name one character at a time across <strong>20 levels</strong> to win the game!
+        </div>
+        <div>
+          <strong style="color: var(--neon-red);">2. The Strike Rule:</strong>
+          For every incorrect guess, one letter gets struck from <strong>BOLLYWOOD</strong> (if the movie is from Bollywood) or <strong>HOLLYWOOD</strong> (if from Hollywood). You have <strong>9 strikes</strong> per movie.
+        </div>
+        <div>
+          <strong style="color: var(--neon-cyan);">3. Level Resets:</strong>
+          Available guesses reset fresh for every level! Difficulty ramps up with every level from household blockbusters to rare cinephile gems.
+        </div>
+        <div>
+          <strong style="color: var(--gold-metallic);">4. Scoring System:</strong>
+          <ul style="margin-left: 20px; margin-top: 4px;">
+            <li><strong>+10 points</strong> for every guessed movie.</li>
+            <li><strong>+1 point</strong> for every unused guess left in that level (up to +9 bonus!).</li>
+          </ul>
+        </div>
+        <div>
+          <strong style="color: #ff99c8);">5. Daily Leaderboard:</strong>
+          Play everyday to build your daily streak, accumulate career points, and rise to the rank of Cinema Maestro!
+        </div>
+      </div>
+
+      <button class="btn-primary" id="closeRulesBtn">Got It! Let's Play</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/movies-data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
