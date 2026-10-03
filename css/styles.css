@@ -829,6 +829,30 @@ body {
   color: var(--gold-light);
 }
 
+.live-sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: #00f0aa;
+  margin-bottom: 10px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: #00f0aa;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0, 240, 170, 0.8);
+  animation: livePulse 1.8s infinite;
+}
+
+@keyframes livePulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
 .leaderboard-list {
   width: 100%;
   max-height: 240px;
@@ -894,6 +918,160 @@ body {
 .lb-streak {
   font-size: 0.62rem;
   color: var(--text-muted);
+}
+
+.lb-ticket-sub {
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 4px;
+  margin-top: 1px;
+}
+
+/* ==========================================================================
+   TICKET BADGES & BUTTONS
+   ========================================================================== */
+.ticket-badges-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ticket-pill {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  user-select: none;
+}
+
+.ticket-pill.gold {
+  background: rgba(255, 200, 59, 0.18);
+  border: 1px solid var(--gold-glow);
+  color: var(--gold-light);
+  box-shadow: 0 0 6px rgba(255, 200, 59, 0.25);
+}
+
+.ticket-pill.purple {
+  background: rgba(176, 132, 255, 0.18);
+  border: 1px solid #b084ff;
+  color: #dfc8ff;
+  box-shadow: 0 0 6px rgba(176, 132, 255, 0.25);
+}
+
+/* Challenge Button */
+.btn-badge.challenge-btn {
+  background: linear-gradient(135deg, rgba(176, 132, 255, 0.25), rgba(255, 51, 102, 0.25));
+  border-color: #b084ff;
+  color: #e6d4ff;
+}
+
+.btn-badge.challenge-btn:hover {
+  background: #b084ff;
+  color: #0b0814;
+  box-shadow: 0 0 12px rgba(176, 132, 255, 0.5);
+}
+
+@media (max-width: 480px) {
+  .btn-text-hideable {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   WHATSAPP NUDGE / SHARE BUTTON
+   ========================================================================== */
+.btn-whatsapp {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+  transition: all 0.15s ease;
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-whatsapp:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.5);
+  background: linear-gradient(135deg, #2ae06e 0%, #17a090 100%);
+}
+
+/* ==========================================================================
+   TICKET REWARD BANNERS (MODALS)
+   ========================================================================== */
+.ticket-reward-banner {
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.ticket-reward-banner.gold {
+  background: linear-gradient(90deg, rgba(255, 200, 59, 0.2) 0%, rgba(212, 175, 55, 0.08) 100%);
+  border: 1.5px solid var(--gold-glow);
+  box-shadow: 0 0 16px rgba(255, 200, 59, 0.25);
+}
+
+.ticket-reward-banner.purple {
+  background: linear-gradient(90deg, rgba(176, 132, 255, 0.2) 0%, rgba(130, 80, 220, 0.08) 100%);
+  border: 1.5px solid #b084ff;
+  box-shadow: 0 0 16px rgba(176, 132, 255, 0.25);
+}
+
+.ticket-icon-large {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 0 8px rgba(255, 200, 59, 0.4));
+}
+
+.ticket-reward-banner.purple .ticket-icon-large {
+  filter: drop-shadow(0 0 8px rgba(176, 132, 255, 0.5));
+}
+
+.ticket-reward-title {
+  font-family: var(--font-marquee);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.ticket-reward-banner.gold .ticket-reward-title {
+  color: var(--gold-light);
+}
+
+.ticket-reward-banner.purple .ticket-reward-title {
+  color: #dfc8ff;
+}
+
+.ticket-reward-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Avatar Option Selection state */
+.avatar-option.selected {
+  border-color: var(--gold-glow) !important;
+  background: rgba(255, 200, 59, 0.15) !important;
 }
 
 /* Canvas Confetti */

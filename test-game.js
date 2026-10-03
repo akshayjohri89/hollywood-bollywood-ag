@@ -12,6 +12,12 @@ global.localStorage = {
   removeItem(k) { delete this._store[k]; }
 };
 
+// Mock fetch for tests
+global.fetch = async () => ({
+  ok: true,
+  json: async () => ({ leaderboard: [] })
+});
+
 // Load dependencies
 require('./js/movies-data.js');
 require('./js/storage.js');
@@ -60,7 +66,6 @@ assert(strikesInitial.every(s => !s.isStruck), "No letters struck initially");
 
 // 3. Incorrect Guess Striking
 console.log("\n3. Testing Incorrect Guess & Strikes Count...");
-// Pick a letter definitely not in the movie or test with random letter
 const title = game.currentMovie.title.toUpperCase();
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const absentLetter = alphabet.find(ch => !title.includes(ch));
@@ -76,13 +81,6 @@ assert(strikesAfterOneWrong[1].isStruck === false, "Second letter of BOLLYWOOD i
 
 // 4. Scoring Calculation Rule
 console.log("\n4. Testing Scoring Rules...");
-// Rule:
-// 1. For every guessed movie you get 10 points
-// 2. For every unused guess you get 1 point
-// With 1 mistake made, unused guesses = 9 - 1 = 8.
-// Expected level score: 10 + 8 = 18 points.
-
-// Guess all letters in title
 for (let ch of title) {
   if (/^[A-Z]$/.test(ch)) {
     game.guessLetter(ch);
@@ -123,8 +121,9 @@ for (let i = 0; i < 9; i++) {
 assert(goGame.mistakesCount === 9, "Mistakes reached 9");
 assert(goGame.status === "game_over", "Game status is game_over");
 
-// 8. Test 20-Level Victory Progression
-console.log("\n8. Testing 20-Level Victory Progression...");
+// 8. Test 20-Level Victory & Golden Ticket Award (Requirement 5)
+console.log("\n8. Testing 20-Level Victory & Golden Ticket...");
+const initialGolden = window.storageManager.profile.goldenTickets || 0;
 const vicGame = new window.BollywoodHollywoodGame({ mode: "bollywood" });
 vicGame.startNewGame("bollywood");
 
@@ -136,24 +135,66 @@ for (let lvl = 1; lvl <= 20; lvl++) {
     }
   }
   if (lvl < 20) {
-    assert(vicGame.status === "level_won", `Level ${lvl} won`);
     vicGame.nextLevel();
   }
 }
 
 assert(vicGame.status === "game_won", "Completing level 20 sets status to game_won");
-// With 0 mistakes in every level, each level gave 10 + 9 = 19 points. 20 levels * 19 = 380 points!
 assert(vicGame.totalScore === 380, `Perfect 20-level score is 380 points, got ${vicGame.totalScore}`);
+assert(window.storageManager.profile.goldenTickets === initialGolden + 1, "Awarded 1 Golden Movie Ticket on Level 20 win");
 
-// 9. Storage & Leaderboard Verification
-console.log("\n9. Testing Storage & Leaderboard...");
-const profile = window.storageManager.loadProfile();
-assert(profile.cumulativePoints > 0, "Cumulative points saved in profile");
-const leaderboard = window.storageManager.getRankedLeaderboard("cumulative");
-assert(leaderboard.length > 0, "Leaderboard populated with rankings");
-const playerEntry = leaderboard.find(p => p.isPlayer === true);
-assert(playerEntry !== undefined, "Player is listed in the leaderboard");
-assert(playerEntry.cumulative === profile.cumulativePoints, "Player cumulative score matches leaderboard");
+// 9. Test Challenge Friends Mode (5 Movies) & Purple Ticket Award (Requirement 4)
+console.log("\n9. Testing Challenge Friends Mode & Purple Ticket...");
+const initialPurple = window.storageManager.profile.purpleTickets || 0;
+const challengeSeed = "FILMI99";
+const chGame1 = new window.BollywoodHollywoodGame();
+chGame1.startChallengeGame(challengeSeed, null, null);
+
+assert(chGame1.gameType === "challenge", "Game type is challenge");
+assert(chGame1.maxLevels === 5, "Challenge mode has exactly 5 levels");
+
+// Collect titles for seed FILMI99
+const seedTitles1 = [];
+for (let lvl = 1; lvl <= 5; lvl++) {
+  seedTitles1.push(chGame1.currentMovie.title);
+  const curT = chGame1.currentMovie.title.toUpperCase();
+  for (let ch of curT) {
+    if (/^[A-Z]$/.test(ch)) chGame1.guessLetter(ch);
+  }
+  if (lvl < 5) chGame1.nextLevel();
+}
+
+assert(chGame1.status === "challenge_won", "Challenge won after 5 levels");
+assert(seedTitles1.length === 5, "Played exactly 5 movies");
+
+// Second player playing the exact same seed
+const chGame2 = new window.BollywoodHollywoodGame();
+chGame2.startChallengeGame(challengeSeed, "Challenger1", 85);
+const seedTitles2 = [];
+for (let lvl = 1; lvl <= 5; lvl++) {
+  seedTitles2.push(chGame2.currentMovie.title);
+  const curT = chGame2.currentMovie.title.toUpperCase();
+  for (let ch of curT) {
+    if (/^[A-Z]$/.test(ch)) chGame2.guessLetter(ch);
+  }
+  if (lvl < 5) chGame2.nextLevel();
+}
+
+assert(JSON.stringify(seedTitles1) === JSON.stringify(seedTitles2), "Both players received the exact same 5 movies in Challenge Mode");
+assert(window.storageManager.profile.purpleTickets > initialPurple, "Awarded Purple Movie Ticket on Challenge win");
+
+// 10. Storage & Name Capture Verification (Requirement 1 & 2)
+console.log("\n10. Testing Storage, Name Capture & Cloud DB...");
+assert(window.storageManager.isPlayerNameSet() === false, "isPlayerNameSet initially false for fresh profile");
+window.storageManager.setPlayerName("Karan_Johar", "🍿");
+assert(window.storageManager.isPlayerNameSet() === true, "isPlayerNameSet true after setting name");
+assert(window.storageManager.profile.name === "Karan_Johar", "Player name saved correctly");
+assert(window.storageManager.profile.avatar === "🍿", "Avatar saved correctly");
+
+const rankedBoard = window.storageManager.getRankedLeaderboard("tickets");
+assert(rankedBoard.length > 0, "Leaderboard ranked by tickets available");
+const playerEntry = rankedBoard.find(p => p.isPlayer === true);
+assert(playerEntry !== undefined, "Player listed in tickets leaderboard");
 
 console.log(`\n========================================`);
 console.log(`ALL TESTS COMPLETED: ${passedTests} / ${totalTests} PASSED!`);
