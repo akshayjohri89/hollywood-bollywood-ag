@@ -130,10 +130,22 @@ body {
   white-space: nowrap;
 }
 
-@media (max-width: 480px) {
-  .title-wrap h1 {
-    font-size: 0.88rem;
-    letter-spacing: 0px;
+.desktop-title {
+  display: block;
+}
+
+.mobile-title {
+  display: none;
+}
+
+@media (max-width: 580px) {
+  .desktop-title {
+    display: none;
+  }
+  .mobile-title {
+    display: block;
+    font-size: 0.95rem;
+    letter-spacing: 0.2px;
   }
 }
 
@@ -185,13 +197,54 @@ body {
   color: #000;
 }
 
-/* Main Screen Viewport (Fits vertically without scrolling) */
+/* Cinema Action Bar (Dedicated Ticket showcase & Challenge button) */
+.cinema-action-bar {
+  width: 100%;
+  max-width: 760px;
+  height: 36px;
+  min-height: 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 12px;
+  flex-shrink: 0;
+  z-index: 9;
+  background: rgba(13, 16, 26, 0.75);
+  border-bottom: 1px solid rgba(255, 200, 59, 0.15);
+  backdrop-filter: blur(6px);
+}
+
+@media (max-width: 480px) {
+  .game-header {
+    padding: 4px 8px;
+    height: 44px;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .btn-badge {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+  .btn-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+  .cinema-action-bar {
+    padding: 2px 8px;
+    height: 32px;
+    min-height: 32px;
+  }
+}
+
+/* Main Screen Viewport (Fits vertically without scrolling on mobile & desktop) */
 .game-viewport {
   width: 100%;
   max-width: 760px;
-  height: calc(100% - 48px);
-  height: calc(100dvh - 48px);
-  max-height: calc(100dvh - 48px);
+  height: calc(100% - 84px);
+  height: calc(100dvh - 84px);
+  max-height: calc(100dvh - 84px);
   padding: 4px 12px 6px;
   display: flex;
   flex-direction: column;
@@ -199,6 +252,39 @@ body {
   align-items: center;
   overflow: hidden;
   z-index: 5;
+}
+
+@media (max-width: 480px) {
+  .game-viewport {
+    height: calc(100% - 76px);
+    height: calc(100dvh - 76px);
+    max-height: calc(100dvh - 76px);
+    padding: 2px 8px 4px;
+  }
+}
+
+@media (max-height: 660px) {
+  .marquee-theater {
+    padding: 3px 6px;
+    margin-bottom: 2px;
+  }
+  .marquee-letter-card {
+    height: 34px;
+    font-size: 1.05rem;
+  }
+  .movie-card {
+    padding: 4px 8px;
+    min-height: 52px;
+    margin-bottom: 2px;
+  }
+  .letter-slot {
+    height: 30px;
+    font-size: 1rem;
+  }
+  .kb-key {
+    height: 32px;
+    font-size: 0.85rem;
+  }
 }
 
 /* HUD Banner */
@@ -929,54 +1015,136 @@ body {
 }
 
 /* ==========================================================================
-   TICKET BADGES & BUTTONS
+   TICKET BADGES & CHALLENGE CTA
    ========================================================================== */
 .ticket-badges-wrap {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .ticket-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 8px;
   border-radius: 12px;
   font-size: 0.72rem;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  cursor: pointer;
   user-select: none;
+  transition: all 0.15s ease;
+}
+
+.ticket-pill:hover {
+  transform: translateY(-1px);
 }
 
 .ticket-pill.gold {
-  background: rgba(255, 200, 59, 0.18);
-  border: 1px solid var(--gold-glow);
+  background: linear-gradient(135deg, rgba(255, 200, 59, 0.22), rgba(212, 175, 55, 0.12));
+  border: 1px solid rgba(255, 200, 59, 0.6);
   color: var(--gold-light);
   box-shadow: 0 0 6px rgba(255, 200, 59, 0.25);
 }
 
+.ticket-pill.gold:hover {
+  box-shadow: 0 0 10px rgba(255, 200, 59, 0.45);
+}
+
 .ticket-pill.purple {
-  background: rgba(176, 132, 255, 0.18);
-  border: 1px solid #b084ff;
-  color: #dfc8ff;
+  background: linear-gradient(135deg, rgba(176, 132, 255, 0.25), rgba(120, 60, 220, 0.15));
+  border: 1px solid rgba(176, 132, 255, 0.6);
+  color: #eedeff;
   box-shadow: 0 0 6px rgba(176, 132, 255, 0.25);
 }
 
-/* Challenge Button */
-.btn-badge.challenge-btn {
-  background: linear-gradient(135deg, rgba(176, 132, 255, 0.25), rgba(255, 51, 102, 0.25));
-  border-color: #b084ff;
-  color: #e6d4ff;
+.ticket-pill.purple:hover {
+  box-shadow: 0 0 10px rgba(176, 132, 255, 0.45);
 }
 
-.btn-badge.challenge-btn:hover {
-  background: #b084ff;
-  color: #0b0814;
-  box-shadow: 0 0 12px rgba(176, 132, 255, 0.5);
+.ticket-emoji {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.ticket-name {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Challenge CTA Button */
+.btn-challenge-cta {
+  background: linear-gradient(135deg, #7928ca 0%, #a855f7 100%);
+  border: 1px solid #c084fc;
+  border-radius: 14px;
+  padding: 3px 10px;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.4);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-challenge-cta:hover {
+  background: linear-gradient(135deg, #8b32e6 0%, #b865ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.6);
+}
+
+.btn-challenge-cta:active {
+  transform: translateY(0);
+}
+
+.challenge-icon {
+  font-size: 0.85rem;
+}
+
+.challenge-label {
+  letter-spacing: 0.2px;
+}
+
+.challenge-reward-badge {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 1px 5px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #f3e8ff;
+  letter-spacing: 0.2px;
 }
 
 @media (max-width: 480px) {
-  .btn-text-hideable {
+  .ticket-badges-wrap {
+    gap: 4px;
+  }
+
+  .ticket-pill {
+    padding: 2px 6px;
+    font-size: 0.68rem;
+    gap: 3px;
+  }
+
+  .ticket-name {
+    display: none; /* Keep emoji + count compact on phone */
+  }
+
+  .btn-challenge-cta {
+    padding: 2px 7px;
+    font-size: 0.68rem;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .challenge-reward-badge {
     display: none;
   }
 }

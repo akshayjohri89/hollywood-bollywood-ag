@@ -467,6 +467,22 @@ document.addEventListener("DOMContentLoaded", () => {
     openLeaderboard();
   });
 
+  // --- Requirement 4 & 5: Movie Tickets Showcase ---
+  const headerGoldenBadge = document.getElementById("headerGoldenBadge");
+  const headerPurpleBadge = document.getElementById("headerPurpleBadge");
+  if (headerGoldenBadge) {
+    headerGoldenBadge.addEventListener("click", () => {
+      openLeaderboard();
+      lbTabTickets.click();
+    });
+  }
+  if (headerPurpleBadge) {
+    headerPurpleBadge.addEventListener("click", () => {
+      openLeaderboard();
+      lbTabTickets.click();
+    });
+  }
+
   // --- Requirement 4: Challenge Friends Mode ---
   openChallengeModalBtn.addEventListener("click", () => {
     challengeLauncherModal.classList.add("active");

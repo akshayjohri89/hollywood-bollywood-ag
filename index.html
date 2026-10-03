@@ -39,24 +39,13 @@
     <div class="logo-container" id="logoBtn">
       <span class="clapper-icon">🎬</span>
       <div class="title-wrap">
-        <h1>Hollywood-Bollywood Movie Guesser</h1>
+        <h1 class="desktop-title">Hollywood-Bollywood Movie Guesser</h1>
+        <h1 class="mobile-title">Movie Guesser</h1>
       </div>
     </div>
 
-    <!-- Ticket Badges & Quick Action Buttons -->
+    <!-- Quick Action Icons & Leaderboard -->
     <div class="header-actions">
-      <!-- Golden and Purple Movie Ticket Counters -->
-      <div class="ticket-badges-wrap" title="Movie Tickets Earned">
-        <span class="ticket-pill gold" id="headerGoldenBadge" title="Golden Tickets (Complete 20 Levels)">🎟️✨ <span id="goldenTicketCount">0</span></span>
-        <span class="ticket-pill purple" id="headerPurpleBadge" title="Purple Tickets (Win Friend Challenge)">🎟️💜 <span id="purpleTicketCount">0</span></span>
-      </div>
-
-      <!-- Challenge Friends Button -->
-      <button class="btn-badge challenge-btn" id="openChallengeModalBtn" title="Challenge a Friend (5 Movies)">
-        <span>⚔️</span>
-        <span class="btn-text-hideable">Challenge</span>
-      </button>
-
       <button class="btn-badge" id="leaderboardBtn" title="View Cloud Leaderboard & Daily Ranks">
         <span>🏆</span>
         <span id="headerPoints">0 Pts</span>
@@ -75,6 +64,30 @@
       </button>
     </div>
   </header>
+
+  <!-- Dedicated Cinema Action Bar: 100% visible on Mobile & Desktop -->
+  <section class="cinema-action-bar">
+    <!-- Golden and Purple Movie Ticket Counters -->
+    <div class="ticket-badges-wrap" title="Your Movie Tickets Collection">
+      <span class="ticket-pill gold" id="headerGoldenBadge" title="Golden Tickets (Earned by completing 20 levels)">
+        <span class="ticket-emoji">🎟️✨</span>
+        <span class="ticket-name">Golden:</span>
+        <strong id="goldenTicketCount">0</strong>
+      </span>
+      <span class="ticket-pill purple" id="headerPurpleBadge" title="Purple Tickets (Earned by winning 5-movie Challenge)">
+        <span class="ticket-emoji">🎟️💜</span>
+        <span class="ticket-name">Purple:</span>
+        <strong id="purpleTicketCount">0</strong>
+      </span>
+    </div>
+
+    <!-- Challenge Friends Mode Button -->
+    <button class="btn-challenge-cta" id="openChallengeModalBtn" title="Challenge a Friend (Same 5 Movies)">
+      <span class="challenge-icon">⚔️</span>
+      <span class="challenge-label">Challenge Friends</span>
+      <span class="challenge-reward-badge">Win 🎟️💜</span>
+    </button>
+  </section>
 
   <!-- Main Game Stage -->
   <main class="game-viewport">
