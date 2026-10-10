@@ -75,8 +75,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const victoryRestartBtn = document.getElementById("victoryRestartBtn");
   const victoryLeaderboardBtn = document.getElementById("victoryLeaderboardBtn");
 
-  // Challenge Friends Launcher Modal (Requirement 4)
+  // Challenge Friends Launcher Modal
   const challengeLauncherModal = document.getElementById("challengeLauncherModal");
+  const pendingChallengeBanner = document.getElementById("pendingChallengeBanner");
+  const pendingChallengeStatusText = document.getElementById("pendingChallengeStatusText");
+  const pendingChallengeSubText = document.getElementById("pendingChallengeSubText");
+  const checkPendingChallengeBtn = document.getElementById("checkPendingChallengeBtn");
+  const challengeShareLinkInput = document.getElementById("challengeShareLinkInput");
+  const copyChallengeLauncherLinkBtn = document.getElementById("copyChallengeLauncherLinkBtn");
+  const shareChallengeLauncherWhatsappBtn = document.getElementById("shareChallengeLauncherWhatsappBtn");
   const startChallengeGauntletBtn = document.getElementById("startChallengeGauntletBtn");
   const closeChallengeLauncherBtn = document.getElementById("closeChallengeLauncherBtn");
 
@@ -88,11 +95,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const acceptIncomingChallengeBtn = document.getElementById("acceptIncomingChallengeBtn");
   const declineIncomingChallengeBtn = document.getElementById("declineIncomingChallengeBtn");
 
-  // Challenge Complete Modal (Requirement 4: Purple Ticket)
+  // Challenge Complete / Showdown Modal
   const challengeCompleteModal = document.getElementById("challengeCompleteModal");
   const challengeResultIcon = document.getElementById("challengeResultIcon");
   const challengeResultTitle = document.getElementById("challengeResultTitle");
   const challengeResultDesc = document.getElementById("challengeResultDesc");
+  const challengeWaitingView = document.getElementById("challengeWaitingView");
+  const challengeWaitingMyScoreVal = document.getElementById("challengeWaitingMyScoreVal");
+  const remindFriendWhatsappBtn = document.getElementById("remindFriendWhatsappBtn");
+  const refreshChallengeStatusBtn = document.getElementById("refreshChallengeStatusBtn");
+  const challengeBothCompletedView = document.getElementById("challengeBothCompletedView");
+  const challengeWinnerBanner = document.getElementById("challengeWinnerBanner");
+  const challengeWinnerCrown = document.getElementById("challengeWinnerCrown");
+  const challengeWinnerNameText = document.getElementById("challengeWinnerNameText");
+  const challengeWinnerSubText = document.getElementById("challengeWinnerSubText");
+  const challengePlayer1Label = document.getElementById("challengePlayer1Label");
   const challengeFinalScoreVal = document.getElementById("challengeFinalScoreVal");
   const challengeRivalRow = document.getElementById("challengeRivalRow");
   const challengeRivalLabel = document.getElementById("challengeRivalLabel");
@@ -416,6 +433,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Modal Logic: Game Over ---
   function handleGameOver(data) {
     isHintRevealed = false;
+    if (data.gameType === "challenge") {
+      handleChallengeWon({
+        finalScore: data.totalScore,
+        challengeId: data.challengeId,
+        challengeRole: data.challengeRole,
+        challengeSeed: data.challengeSeed,
+        challengerName: data.challengerName,
+        challengerScore: data.challengerScore
+      });
+      return;
+    }
     gameOverMovieTitle.textContent = data.movie ? data.movie.title : "Unknown Movie";
     gameOverLevel.textContent = `Level ${data.level} / ${data.maxLevels}`;
     gameOverScore.textContent = `${data.totalScore} Pts`;
@@ -484,89 +512,270 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Requirement 4: Challenge Friends Mode ---
-  openChallengeModalBtn.addEventListener("click", () => {
+  openChallengeModalBtn.addEventListener("click", async () => {
+    // Check if player has an active pending challenge in progress
+    const pending = window.storageManager.getPendingChallenge();
+    if (pending && pending.id) {
+      pendingChallengeBanner.style.display = "block";
+      pendingChallengeStatusText.textContent = `Active Challenge: ${pending.id}`;
+      pendingChallengeSubText.textContent = pending.myScore !== undefined
+        ? `You completed with ${pending.myScore} pts! Waiting for friend to finish.`
+        : `Challenge link generated! Waiting for friend to play.`;
+    } else {
+      pendingChallengeBanner.style.display = "none";
+    }
+
+    // Generate fresh challenge ID and seed upfront
+    currentChallengeSeed = Math.random().toString(36).substring(2, 8).toUpperCase();
+    currentChallengeId = `CHLG-${currentChallengeSeed}`;
+    currentChallengeRole = "creator";
+    const creatorName = window.storageManager.profile.name || "Cinephile";
+    activeChallengeLink = `https://hollywood-bollywood-movie-guesser.vercel.app/?challenge=${currentChallengeId}&from=${encodeURIComponent(creatorName)}`;
+
+    challengeShareLinkInput.value = activeChallengeLink;
     challengeLauncherModal.classList.add("active");
+
+    // Asynchronously register challenge in cloud
+    window.storageManager.createChallenge(currentChallengeId, currentChallengeSeed);
   });
 
   closeChallengeLauncherBtn.addEventListener("click", () => {
     challengeLauncherModal.classList.remove("active");
   });
 
+  // Share challenge link on WhatsApp directly from launcher modal
+  shareChallengeLauncherWhatsappBtn.addEventListener("click", () => {
+    const creatorName = window.storageManager.profile.name || "Cinephile";
+    const text = `⚔️ *CINEMA SHOWDOWN from ${creatorName}!* 🎬🍿\n\nI just launched a 5-movie challenge on Hollywood-Bollywood Movie Guesser!\nBoth of us will guess the EXACT same 5 movies. Whoever gets the higher score wins a Purple Movie Ticket 🎟️💜!\n\n👉 *Tap to Accept Challenge & Play:*\n${activeChallengeLink}`;
+    openWhatsAppShare(text);
+  });
+
+  // Copy challenge link from launcher modal
+  copyChallengeLauncherLinkBtn.addEventListener("click", () => {
+    if (activeChallengeLink) {
+      navigator.clipboard.writeText(activeChallengeLink).then(() => {
+        copyChallengeLauncherLinkBtn.textContent = "✅";
+        setTimeout(() => {
+          copyChallengeLauncherLinkBtn.textContent = "📋";
+        }, 2000);
+      });
+    }
+  });
+
+  // Start guessing movies now (Creator)
   startChallengeGauntletBtn.addEventListener("click", () => {
     challengeLauncherModal.classList.remove("active");
-    const seed = Math.random().toString(36).substring(2, 8).toUpperCase();
-    game.startChallengeGame(seed, null, null);
+    window.storageManager.savePendingChallenge({
+      id: currentChallengeId,
+      seed: currentChallengeSeed,
+      role: "creator",
+      creatorName: window.storageManager.profile.name
+    });
+    game.startChallengeGame(currentChallengeSeed, null, null, currentChallengeId, "creator");
+  });
+
+  // Check pending challenge button in launcher banner
+  checkPendingChallengeBtn.addEventListener("click", async () => {
+    const pending = window.storageManager.getPendingChallenge();
+    if (!pending || !pending.id) return;
+    checkPendingChallengeBtn.textContent = "🔄 Checking Cloud...";
+    const ch = await window.storageManager.getChallenge(pending.id);
+    checkPendingChallengeBtn.textContent = "🔄 Check If Friend Finished";
+    if (ch) {
+      if (ch.status === "completed") {
+        challengeLauncherModal.classList.remove("active");
+        window.storageManager.clearPendingChallenge();
+        showChallengeShowdownModal(ch, pending.role || "creator");
+      } else {
+        alert(`Challenge ${ch.id} is still awaiting your friend! Share the link with them on WhatsApp.`);
+      }
+    } else {
+      alert("No active challenge found on the cloud yet. Share your challenge link!");
+    }
   });
 
   // Check incoming challenge link on page load
-  function checkIncomingChallenge() {
+  async function checkIncomingChallenge() {
     const params = new URLSearchParams(window.location.search);
     if (params.has("challenge")) {
-      const seed = params.get("challenge");
+      const rawChallenge = params.get("challenge");
       const from = params.get("from") || "A Friend";
-      const score = params.get("score") || 80;
+      const challengeId = rawChallenge.startsWith("CHLG-") ? rawChallenge : `CHLG-${rawChallenge}`;
+      const seed = challengeId.replace(/^CHLG-/, '');
+
+      currentChallengeId = challengeId;
+      currentChallengeSeed = seed;
+      currentChallengeRole = "friend";
+      activeChallengeLink = window.location.href;
 
       incomingChallengerName.textContent = from;
       incomingChallengerNameVal.textContent = from;
-      incomingChallengerTargetVal.textContent = `${score} Pts`;
 
+      // Fetch cloud status to see if challenger already finished
+      incomingChallengerTargetVal.textContent = "Checking Cloud...";
       incomingChallengeModal.classList.add("active");
+
+      const ch = await window.storageManager.getChallenge(challengeId);
+      if (ch && ch.creatorCompleted && ch.creatorScore !== null) {
+        incomingChallengerTargetVal.textContent = `${ch.creatorScore} Pts (Locked in!)`;
+      } else {
+        incomingChallengerTargetVal.textContent = `Awaiting Matchup`;
+      }
 
       acceptIncomingChallengeBtn.onclick = () => {
         incomingChallengeModal.classList.remove("active");
-        game.startChallengeGame(seed, from, score);
+        const targetScore = (ch && ch.creatorCompleted) ? ch.creatorScore : null;
+        game.startChallengeGame(seed, from, targetScore, challengeId, "friend");
       };
 
       declineIncomingChallengeBtn.onclick = () => {
         incomingChallengeModal.classList.remove("active");
         game.startNewGame("mixed", false);
       };
+    } else {
+      // Check if user has an unfinished pending challenge that is now completed
+      checkPendingChallengeCompletionOnLoad();
     }
   }
 
-  // Handle Challenge Won / Completed
-  function handleChallengeWon(data) {
-    isHintRevealed = false;
-    challengeFinalScoreVal.textContent = `${data.finalScore} Pts`;
-    challengePurpleTicketsTotal.textContent = `🎟️💜 ${data.purpleTickets || 0}`;
-
-    const playerName = window.storageManager.profile.name;
-    const challengeUrl = `https://hollywood-bollywood-movie-guesser.vercel.app/?challenge=${data.challengeSeed}&from=${encodeURIComponent(playerName)}&score=${data.finalScore}`;
-    activeChallengeLink = challengeUrl;
-
-    if (data.challengerScore !== null) {
-      // Player was playing against a challenger!
-      challengeRivalRow.style.display = "flex";
-      challengeRivalLabel.textContent = `${data.challengerName || 'Challenger'}'s Score:`;
-      challengeRivalScoreVal.textContent = `${data.challengerScore} Pts`;
-
-      if (data.wonChallenge) {
-        challengeResultIcon.textContent = "🎟️💜👑";
-        challengeResultTitle.textContent = "VICTORY! CHALLENGE WON!";
-        challengeResultDesc.textContent = `You scored ${data.finalScore} pts vs ${data.challengerName}'s ${data.challengerScore} pts! You earned a Purple Movie Ticket 🎟️💜!`;
-        startConfetti();
-      } else {
-        challengeResultIcon.textContent = "🎬⚔️";
-        challengeResultTitle.textContent = "CHALLENGE CONCLUDED!";
-        challengeResultDesc.textContent = `You scored ${data.finalScore} pts vs ${data.challengerName}'s ${data.challengerScore} pts. So close! Challenge them back to win a Purple Ticket!`;
+  async function checkPendingChallengeCompletionOnLoad() {
+    const pending = window.storageManager.getPendingChallenge();
+    if (!pending || !pending.id || pending.myScore === undefined) return;
+    try {
+      const ch = await window.storageManager.getChallenge(pending.id);
+      if (ch && ch.status === "completed") {
+        window.storageManager.clearPendingChallenge();
+        showChallengeShowdownModal(ch, pending.role || "creator");
       }
+    } catch (e) {}
+  }
+
+  // Handle Challenge Won / Completed
+  async function handleChallengeWon(data) {
+    isHintRevealed = false;
+    const challengeId = data.challengeId || currentChallengeId;
+    const challengeSeed = data.challengeSeed || currentChallengeSeed;
+    const role = data.challengeRole || currentChallengeRole;
+    const finalScore = data.finalScore || 0;
+
+    // Save our score locally in pending challenge
+    window.storageManager.savePendingChallenge({
+      id: challengeId,
+      seed: challengeSeed,
+      role: role,
+      myScore: finalScore,
+      completedAt: new Date().toISOString()
+    });
+
+    // Submit score to cloud
+    const ch = await window.storageManager.submitChallengeScore(challengeId, finalScore, role, challengeSeed);
+
+    if (ch && ch.status === "completed") {
+      // Both completed! Clear pending challenge & show showdown modal
+      window.storageManager.clearPendingChallenge();
+      showChallengeShowdownModal(ch, role);
     } else {
-      // Player created a fresh challenge
-      challengeRivalRow.style.display = "none";
-      challengeResultIcon.textContent = "🎟️💜⚔️";
-      challengeResultTitle.textContent = "5-MOVIE RUN COMPLETE!";
-      challengeResultDesc.textContent = `You scored ${data.finalScore} pts! Send this challenge to a friend on WhatsApp. If they can't beat you, you reign supreme! You earned a Purple Movie Ticket 🎟️💜!`;
-      startConfetti();
+      // Friend hasn't completed yet -> show waiting view
+      showChallengeWaitingModal(finalScore, challengeId, challengeSeed, ch);
     }
+  }
+
+  function showChallengeWaitingModal(myScore, challengeId, seed, ch) {
+    challengeWaitingView.style.display = "block";
+    challengeBothCompletedView.style.display = "none";
+    challengeResultIcon.textContent = "⏳🎟️";
+    challengeResultTitle.textContent = "5 MOVIES COMPLETED!";
+    challengeResultDesc.textContent = "Your score has been locked in! Waiting for your friend to finish the same 5 movies.";
+    challengeWaitingMyScoreVal.textContent = `${myScore} Pts`;
+
+    const myName = window.storageManager.profile.name || "Cinephile";
+    const shareUrl = `https://hollywood-bollywood-movie-guesser.vercel.app/?challenge=${challengeId}&from=${encodeURIComponent(myName)}`;
+    activeChallengeLink = shareUrl;
+
+    remindFriendWhatsappBtn.onclick = () => {
+      const text = `⚔️ *CINEMA CHALLENGE UPDATE!* 🎬🍿\nI scored *${myScore} pts* on my 5-movie run in Hollywood-Bollywood Movie Guesser!\n\nCan you beat my score? Play the same 5 movies now to see who wins the Purple Movie Ticket 🎟️💜:\n${shareUrl}`;
+      openWhatsAppShare(text);
+    };
+
+    refreshChallengeStatusBtn.onclick = async () => {
+      refreshChallengeStatusBtn.textContent = "🔄 Checking Cloud...";
+      const updated = await window.storageManager.getChallenge(challengeId);
+      refreshChallengeStatusBtn.textContent = "🔄 Check If Friend Finished";
+      if (updated && updated.status === "completed") {
+        window.storageManager.clearPendingChallenge();
+        showChallengeShowdownModal(updated, currentChallengeRole);
+      } else {
+        alert("Your friend hasn't finished yet! Make sure you send them the challenge link on WhatsApp.");
+      }
+    };
 
     challengeCompleteModal.classList.add("active");
   }
 
-  shareChallengeWhatsappBtn.addEventListener("click", () => {
-    const playerName = window.storageManager.profile.name;
-    const text = `⚔️ FILMI CHALLENGE! I scored ${game.totalScore} pts across 5 movies in Hollywood-Bollywood Challenge Mode and earned a Purple Ticket 🎟️💜!\n\nCan you beat my score on the EXACT same 5 movies? Click to play:\n${activeChallengeLink}`;
-    openWhatsAppShare(text);
-  });
+  function showChallengeShowdownModal(ch, myRole) {
+    challengeWaitingView.style.display = "none";
+    challengeBothCompletedView.style.display = "block";
+
+    const myName = window.storageManager.profile.name || "Cinephile";
+    let myScore = 0;
+    let opponentScore = 0;
+    let opponentName = "Friend";
+
+    if (myRole === "creator") {
+      myScore = ch.creatorScore !== null ? ch.creatorScore : 0;
+      opponentScore = ch.friendScore !== null ? ch.friendScore : 0;
+      opponentName = ch.friendName || "Friend";
+    } else {
+      myScore = ch.friendScore !== null ? ch.friendScore : 0;
+      opponentScore = ch.creatorScore !== null ? ch.creatorScore : 0;
+      opponentName = ch.creatorName || "Challenger";
+    }
+
+    challengePlayer1Label.textContent = "Your Score:";
+    challengeFinalScoreVal.textContent = `${myScore} Pts`;
+    challengeRivalRow.style.display = "flex";
+    challengeRivalLabel.textContent = `${opponentName}'s Score:`;
+    challengeRivalScoreVal.textContent = `${opponentScore} Pts`;
+
+    // Winner declaration
+    const winner = ch.winner;
+    const isMeWinner = winner && (winner.trim().toLowerCase() === myName.trim().toLowerCase());
+    const isTie = winner === "tie" || myScore === opponentScore;
+
+    if (isTie) {
+      challengeResultIcon.textContent = "🤝🎬";
+      challengeResultTitle.textContent = "IT'S A DRAW!";
+      challengeWinnerCrown.textContent = "🤝";
+      challengeWinnerNameText.textContent = "EPIC TIE SHOWDOWN!";
+      challengeWinnerSubText.textContent = `Both scored ${myScore} Pts! Two true movie legends!`;
+    } else if (isMeWinner) {
+      challengeResultIcon.textContent = "👑🎟️💜";
+      challengeResultTitle.textContent = "VICTORY! YOU WON!";
+      challengeWinnerCrown.textContent = "👑";
+      challengeWinnerNameText.textContent = `${myName} WINS!`;
+      challengeWinnerSubText.textContent = `You beat ${opponentName} (${myScore} vs ${opponentScore} pts)! Purple Ticket Awarded!`;
+      startConfetti();
+      if (window.soundEngine) window.soundEngine.playGrandVictory();
+    } else {
+      challengeResultIcon.textContent = "👏🎬";
+      challengeResultTitle.textContent = "CHALLENGE SHOWDOWN!";
+      challengeWinnerCrown.textContent = "🏆";
+      challengeWinnerNameText.textContent = `${winner} WINS!`;
+      challengeWinnerSubText.textContent = `${winner} scored ${opponentScore} pts vs your ${myScore} pts!`;
+    }
+
+    challengePurpleTicketsTotal.textContent = `🎟️💜 ${window.storageManager.profile.purpleTickets || 0}`;
+
+    shareChallengeWhatsappBtn.onclick = () => {
+      const resultText = isTie
+        ? `🤝 CINEMA CHALLENGE DRAW! Both ${myName} and ${opponentName} scored ${myScore} pts on the same 5 movies!`
+        : `👑 CINEMA CHALLENGE RESULT!\n${myName}: ${myScore} Pts\n${opponentName}: ${opponentScore} Pts\nWinner: ${winner} 🎟️💜!`;
+      const text = `${resultText}\n\nThink you can beat us? Play Hollywood-Bollywood Movie Guesser here:\nhttps://hollywood-bollywood-movie-guesser.vercel.app`;
+      openWhatsAppShare(text);
+    };
+
+    challengeCompleteModal.classList.add("active");
+  }
 
   copyChallengeLinkBtn.addEventListener("click", () => {
     if (activeChallengeLink) {

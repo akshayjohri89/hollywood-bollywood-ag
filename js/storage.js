@@ -354,6 +354,186 @@ class StorageManager {
   updatePlayerName(newName, avatar = null) {
     this.setPlayerName(newName, avatar);
   }
+
+  // --- Asynchronous 2-Player Challenge Mode Methods ---
+  getPendingChallenge() {
+    try {
+      const saved = localStorage.getItem("bh_pending_challenge");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  savePendingChallenge(data) {
+    try {
+      localStorage.setItem("bh_pending_challenge", JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  clearPendingChallenge() {
+    try {
+      localStorage.removeItem("bh_pending_challenge");
+    } catch (e) {}
+  }
+
+  async createChallenge(challengeId, seed) {
+    const creatorName = this.profile.name || "Cinephile";
+    const newChallenge = {
+      id: challengeId,
+      seed: seed,
+      creatorName: creatorName,
+      creatorScore: null,
+      creatorCompleted: false,
+      friendName: null,
+      friendScore: null,
+      friendCompleted: false,
+      status: "created",
+      winner: null,
+      createdAt: new Date().toISOString()
+    };
+
+    // Save pending challenge locally
+    this.savePendingChallenge({
+      id: challengeId,
+      seed: seed,
+      role: "creator",
+      creatorName: creatorName
+    });
+
+    try {
+      const res = await fetch("/api/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create",
+          id: challengeId,
+          seed: seed,
+          creatorName: creatorName
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.challenge || newChallenge;
+      }
+    } catch (e) {
+      // Direct cloud bin fallback
+      try {
+        let currentData = { leaderboard: this.leaderboard, challenges: {} };
+        const getRes = await fetch("https://extendsclass.com/api/json-storage/bin/fdecfec");
+        if (getRes.ok) currentData = await getRes.json();
+        if (!currentData.challenges) currentData.challenges = {};
+        currentData.challenges[challengeId] = newChallenge;
+        await fetch("https://extendsclass.com/api/json-storage/bin/fdecfec", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentData)
+        });
+      } catch (err2) {}
+    }
+    return newChallenge;
+  }
+
+  async getChallenge(challengeId) {
+    if (!challengeId) return null;
+    try {
+      const res = await fetch(`/api/challenge?id=${encodeURIComponent(challengeId)}`, {
+        headers: { "Cache-Control": "no-cache" }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.challenge;
+      }
+    } catch (e) {
+      // Direct cloud bin fallback
+      try {
+        const getRes = await fetch("https://extendsclass.com/api/json-storage/bin/fdecfec", {
+          headers: { "Cache-Control": "no-cache" }
+        });
+        if (getRes.ok) {
+          const currentData = await getRes.json();
+          if (currentData.challenges && currentData.challenges[challengeId]) {
+            return currentData.challenges[challengeId];
+          }
+        }
+      } catch (err2) {}
+    }
+    return null;
+  }
+
+  async submitChallengeScore(challengeId, score, role = "creator", seed = null) {
+    const playerName = this.profile.name || "Cinephile";
+    const payload = {
+      action: "submit_score",
+      id: challengeId,
+      seed: seed,
+      score: Number(score) || 0,
+      role: role,
+      playerName: playerName
+    };
+
+    let resultChallenge = null;
+
+    try {
+      const res = await fetch("/api/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        resultChallenge = data.challenge;
+      }
+    } catch (e) {
+      // Fallback direct cloud write
+      try {
+        let currentData = { leaderboard: this.leaderboard, challenges: {} };
+        const getRes = await fetch("https://extendsclass.com/api/json-storage/bin/fdecfec");
+        if (getRes.ok) currentData = await getRes.json();
+        if (!currentData.challenges) currentData.challenges = {};
+        let ch = currentData.challenges[challengeId] || {
+          id: challengeId,
+          seed: seed || challengeId.replace(/^CHLG-/, ''),
+          createdAt: new Date().toISOString()
+        };
+        if (role === "friend") {
+          ch.friendName = playerName;
+          ch.friendScore = Number(score);
+          ch.friendCompleted = true;
+        } else {
+          ch.creatorName = playerName;
+          ch.creatorScore = Number(score);
+          ch.creatorCompleted = true;
+        }
+        if (ch.creatorCompleted && ch.friendCompleted) {
+          ch.status = "completed";
+          if (ch.creatorScore > ch.friendScore) ch.winner = ch.creatorName;
+          else if (ch.friendScore > ch.creatorScore) ch.winner = ch.friendName;
+          else ch.winner = "tie";
+        } else {
+          ch.status = ch.creatorCompleted ? "waiting_friend" : "waiting_creator";
+        }
+        currentData.challenges[challengeId] = ch;
+        await fetch("https://extendsclass.com/api/json-storage/bin/fdecfec", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentData)
+        });
+        resultChallenge = ch;
+      } catch (err2) {}
+    }
+
+    // If both completed and this player won, award Purple Ticket!
+    if (resultChallenge && resultChallenge.status === "completed") {
+      const isWinner = resultChallenge.winner && 
+        resultChallenge.winner.trim().toLowerCase() === playerName.trim().toLowerCase();
+      if (isWinner) {
+        this.awardPurpleTicket();
+      }
+    }
+
+    return resultChallenge;
+  }
 }
 
 window.storageManager = new StorageManager();

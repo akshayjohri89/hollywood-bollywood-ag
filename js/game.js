@@ -58,7 +58,7 @@ class BollywoodHollywoodGame {
   }
 
   // Start 5-Level "Challenge Friends" run
-  startChallengeGame(seed = null, challengerName = null, challengerScore = null) {
+  startChallengeGame(seed = null, challengerName = null, challengerScore = null, challengeId = null, challengeRole = "creator") {
     this.gameType = "challenge";
     this.currentLevel = 1;
     this.maxLevels = 5; // Exactly 5 movies for friend challenge
@@ -68,6 +68,8 @@ class BollywoodHollywoodGame {
 
     // Generate or use seed
     this.challengeSeed = seed ? String(seed).toUpperCase() : Math.random().toString(36).substring(2, 8).toUpperCase();
+    this.challengeId = challengeId || `CHLG-${this.challengeSeed}`;
+    this.challengeRole = challengeRole || "creator";
     this.challengerName = challengerName ? String(challengerName).trim() : null;
     this.challengerScore = (challengerScore !== null && challengerScore !== undefined && !isNaN(challengerScore)) 
       ? Number(challengerScore) 
@@ -76,7 +78,7 @@ class BollywoodHollywoodGame {
     this.setupLevel(this.currentLevel);
 
     if (typeof window !== "undefined" && window.va) {
-      window.va('event', { name: 'game_start', type: 'challenge', seed: this.challengeSeed });
+      window.va('event', { name: 'game_start', type: 'challenge', seed: this.challengeSeed, challengeId: this.challengeId });
     }
   }
 
@@ -265,6 +267,8 @@ class BollywoodHollywoodGame {
           challengerScore: this.challengerScore,
           challengerName: this.challengerName,
           challengeSeed: this.challengeSeed,
+          challengeId: this.challengeId,
+          challengeRole: this.challengeRole,
           purpleTickets: totalPurpleTickets,
           levelScore: this.levelScore,
           unusedGuesses: unusedGuesses,
@@ -339,7 +343,9 @@ class BollywoodHollywoodGame {
       gameType: this.gameType,
       challengerScore: this.challengerScore,
       challengerName: this.challengerName,
-      challengeSeed: this.challengeSeed
+      challengeSeed: this.challengeSeed,
+      challengeId: this.challengeId,
+      challengeRole: this.challengeRole
     });
 
     this.notifyUpdate();

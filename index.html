@@ -294,23 +294,44 @@
     </div>
   </div>
 
-  <!-- Modal 5: Challenge Launcher Modal (Requirement 4) -->
+  <!-- Modal 5: Challenge Launcher Modal -->
   <div class="modal-overlay" id="challengeLauncherModal">
     <div class="modal-dialog">
       <div class="modal-icon-badge">⚔️🎟️</div>
-      <h2 class="modal-title">CHALLENGE FRIENDS</h2>
-      <p class="modal-desc">Both of you will guess the <strong>same 5 movies</strong>. Whoever gets the highest score wins a <strong>Purple Movie Ticket 🎟️💜</strong>!</p>
+      <h2 class="modal-title">CHALLENGE A FRIEND</h2>
+      <p class="modal-desc">Share this challenge link with friends on WhatsApp. Both of you will guess the <strong>same 5 movies</strong>. Whoever scores higher wins a <strong>Purple Movie Ticket 🎟️💜</strong>!</p>
 
-      <div class="ticket-reward-banner purple" style="margin-bottom: 16px;">
+      <!-- Active / Pending Challenge Banner (if any) -->
+      <div id="pendingChallengeBanner" class="pending-challenge-box" style="display: none;">
+        <div class="pending-box-header">
+          <span class="pending-pulse"></span>
+          <strong id="pendingChallengeStatusText">Active Challenge in Progress</strong>
+        </div>
+        <p class="pending-box-sub" id="pendingChallengeSubText">Waiting for your friend to finish their 5 movies...</p>
+        <button class="btn-secondary" id="checkPendingChallengeBtn" style="padding: 6px 12px; font-size: 0.78rem; margin-top: 6px; width: 100%;">🔄 Check If Friend Finished</button>
+      </div>
+
+      <div class="ticket-reward-banner purple" style="margin-bottom: 12px;">
         <span class="ticket-icon-large">🎟️💜</span>
         <div class="ticket-text-group">
-          <div class="ticket-reward-title">PURPLE TICKET ON THE LINE</div>
-          <div class="ticket-reward-desc">Score higher across 5 levels to win!</div>
+          <div class="ticket-reward-title">PURPLE TICKET PRIZE</div>
+          <div class="ticket-reward-desc">5 movies · Same difficulty · Winner takes the ticket!</div>
         </div>
       </div>
 
-      <button class="btn-primary" id="startChallengeGauntletBtn">⚔️ Start My 5-Movie Challenge Run</button>
-      <button class="btn-secondary" id="closeChallengeLauncherBtn">Cancel</button>
+      <!-- Challenge Link Display Box -->
+      <div class="challenge-link-box">
+        <span class="challenge-link-label">Your Shareable Challenge Link:</span>
+        <div class="challenge-link-input-wrap">
+          <input type="text" id="challengeShareLinkInput" class="challenge-link-input" readonly value="Generating link..." />
+          <button class="btn-copy-inline" id="copyChallengeLauncherLinkBtn" title="Copy Link">📋</button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <button class="btn-whatsapp" id="shareChallengeLauncherWhatsappBtn">📲 Share Challenge on WhatsApp</button>
+      <button class="btn-primary" id="startChallengeGauntletBtn" style="margin-top: 8px;">🎬 Start Guessing Movies Now</button>
+      <button class="btn-secondary" id="closeChallengeLauncherBtn" style="margin-top: 6px;">Close</button>
     </div>
   </div>
 
@@ -327,8 +348,8 @@
           <span class="score-row-val" id="incomingChallengerNameVal">Friend</span>
         </div>
         <div class="score-row">
-          <span>Target Score to Beat:</span>
-          <span class="score-row-val" id="incomingChallengerTargetVal" style="color: var(--gold-glow);">85 Pts</span>
+          <span>Challenger Status:</span>
+          <span class="score-row-val" id="incomingChallengerTargetVal" style="color: var(--gold-glow);">Ready to Play</span>
         </div>
         <div class="score-row">
           <span>Prize:</span>
@@ -336,36 +357,66 @@
         </div>
       </div>
 
-      <button class="btn-primary" id="acceptIncomingChallengeBtn">⚔️ Accept Challenge & Start Level 1</button>
+      <button class="btn-primary" id="acceptIncomingChallengeBtn">⚔️ Accept & Start Guessing</button>
       <button class="btn-secondary" id="declineIncomingChallengeBtn">Play Normal Mode Instead</button>
     </div>
   </div>
 
-  <!-- Modal 7: Challenge Completed / Result Modal (Requirement 4) -->
+  <!-- Modal 7: Challenge Completed / Showdown Modal -->
   <div class="modal-overlay" id="challengeCompleteModal">
     <div class="modal-dialog">
       <div class="modal-icon-badge" id="challengeResultIcon">🎟️💜</div>
-      <h2 class="modal-title" id="challengeResultTitle">CHALLENGE COMPLETE!</h2>
+      <h2 class="modal-title" id="challengeResultTitle">CHALLENGE SHOWDOWN!</h2>
       <p class="modal-desc" id="challengeResultDesc">You completed the 5-movie gauntlet!</p>
 
-      <div class="score-breakdown-card">
-        <div class="score-row">
-          <span>Your 5-Movie Score:</span>
-          <span class="score-row-val" id="challengeFinalScoreVal">88 Pts</span>
+      <!-- Waiting State View (when friend has not finished yet) -->
+      <div id="challengeWaitingView" style="display: none; width: 100%;">
+        <div class="score-breakdown-card">
+          <div class="score-row">
+            <span>Your 5-Movie Score:</span>
+            <span class="score-row-val" id="challengeWaitingMyScoreVal" style="color: var(--gold-glow);">85 Pts</span>
+          </div>
+          <div class="score-row">
+            <span>Friend's Status:</span>
+            <span class="score-row-val" style="color: #b084ff;">⏳ Waiting to Play...</span>
+          </div>
         </div>
-        <div class="score-row" id="challengeRivalRow">
-          <span id="challengeRivalLabel">Challenger Target:</span>
-          <span class="score-row-val" id="challengeRivalScoreVal">82 Pts</span>
-        </div>
-        <div class="score-row">
-          <span>Purple Tickets Total:</span>
-          <span class="score-row-val" id="challengePurpleTicketsTotal" style="color: #b084ff;">🎟️💜 1</span>
-        </div>
+
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin: 10px 0 6px;">Share the link on WhatsApp so your friend can play. Once both finish, the winner gets the Purple Ticket!</p>
+
+        <button class="btn-whatsapp" id="remindFriendWhatsappBtn">📲 Remind / Share on WhatsApp</button>
+        <button class="btn-secondary" id="refreshChallengeStatusBtn" style="margin-top: 8px;">🔄 Check If Friend Finished</button>
       </div>
 
-      <button class="btn-whatsapp" id="shareChallengeWhatsappBtn">📲 Send Challenge on WhatsApp</button>
-      <button class="btn-secondary" id="copyChallengeLinkBtn">📋 Copy Challenge Link</button>
-      <button class="btn-primary" id="closeChallengeCompleteBtn" style="margin-top: 10px;">Back to Game</button>
+      <!-- Both Completed / Winner Declared View -->
+      <div id="challengeBothCompletedView" style="width: 100%;">
+        <!-- Winner Banner -->
+        <div class="challenge-winner-banner" id="challengeWinnerBanner">
+          <span class="winner-crown" id="challengeWinnerCrown">👑</span>
+          <strong id="challengeWinnerNameText">Winner Declared!</strong>
+          <span class="winner-sub" id="challengeWinnerSubText">Purple Movie Ticket Awarded!</span>
+        </div>
+
+        <div class="score-breakdown-card">
+          <div class="score-row">
+            <span id="challengePlayer1Label">You:</span>
+            <span class="score-row-val" id="challengeFinalScoreVal">88 Pts</span>
+          </div>
+          <div class="score-row" id="challengeRivalRow">
+            <span id="challengeRivalLabel">Friend:</span>
+            <span class="score-row-val" id="challengeRivalScoreVal">82 Pts</span>
+          </div>
+          <div class="score-row">
+            <span>Your Purple Tickets:</span>
+            <span class="score-row-val" id="challengePurpleTicketsTotal" style="color: #b084ff;">🎟️💜 1</span>
+          </div>
+        </div>
+
+        <button class="btn-whatsapp" id="shareChallengeWhatsappBtn">📲 Share Results on WhatsApp</button>
+      </div>
+
+      <button class="btn-secondary" id="copyChallengeLinkBtn" style="margin-top: 8px;">📋 Copy Challenge Link</button>
+      <button class="btn-primary" id="closeChallengeCompleteBtn" style="margin-top: 8px;">Back to Main Game</button>
     </div>
   </div>
 

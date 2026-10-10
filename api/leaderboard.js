@@ -93,11 +93,11 @@ module.exports = async (req, res) => {
       // Limit to top 100 players
       list = list.slice(0, 100);
 
-      // Save back to cloud database
+      // Save back to cloud database (preserve challenges and metadata)
       await fetch(CLOUD_STORAGE_URL, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leaderboard: list })
+        body: JSON.stringify({ ...currentData, leaderboard: list })
       });
 
       return res.status(200).json({ success: true, entry: updatedEntry, leaderboard: list });

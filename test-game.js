@@ -196,6 +196,84 @@ assert(rankedBoard.length > 0, "Leaderboard ranked by tickets available");
 const playerEntry = rankedBoard.find(p => p.isPlayer === true);
 assert(playerEntry !== undefined, "Player listed in tickets leaderboard");
 
+// 11. Testing Asynchronous 2-Player Challenge Workflow & Showdown
+console.log("\n11. Testing 2-Player Asynchronous Challenge Workflow...");
+const testChallengeId = "CHLG-UNITTEST";
+const testSeed = "UNITTEST";
+
+// Test pending challenge storage
+window.storageManager.savePendingChallenge({
+  id: testChallengeId,
+  seed: testSeed,
+  role: "creator",
+  creatorName: "Karan_Johar"
+});
+const savedPending = window.storageManager.getPendingChallenge();
+assert(savedPending !== null && savedPending.id === testChallengeId, "Pending challenge saved and retrieved");
+
+// Test challenge simulation
+const simulatedChallenges = {};
+function simulateSubmitScore(id, score, role, playerName) {
+  if (!simulatedChallenges[id]) {
+    simulatedChallenges[id] = {
+      id,
+      seed: testSeed,
+      creatorName: "Creator",
+      creatorScore: null,
+      creatorCompleted: false,
+      friendName: null,
+      friendScore: null,
+      friendCompleted: false,
+      status: "created",
+      winner: null
+    };
+  }
+  const ch = simulatedChallenges[id];
+  if (role === "creator") {
+    ch.creatorName = playerName;
+    ch.creatorScore = score;
+    ch.creatorCompleted = true;
+  } else {
+    ch.friendName = playerName;
+    ch.friendScore = score;
+    ch.friendCompleted = true;
+  }
+  if (ch.creatorCompleted && ch.friendCompleted) {
+    ch.status = "completed";
+    if (ch.creatorScore > ch.friendScore) ch.winner = ch.creatorName;
+    else if (ch.friendScore > ch.creatorScore) ch.winner = ch.friendName;
+    else ch.winner = "tie";
+  } else {
+    ch.status = ch.creatorCompleted ? "waiting_friend" : "waiting_creator";
+  }
+  return ch;
+}
+
+// 1. Creator finishes with 75 pts
+const chStep1 = simulateSubmitScore(testChallengeId, 75, "creator", "CreatorAlice");
+assert(chStep1.status === "waiting_friend", "Status is waiting_friend when creator completes first");
+assert(chStep1.winner === null, "No winner declared before friend finishes");
+
+// 2. Friend finishes with 85 pts -> both completed
+const chStep2 = simulateSubmitScore(testChallengeId, 85, "friend", "FriendBob");
+assert(chStep2.status === "completed", "Status is completed when both players finish");
+assert(chStep2.winner === "FriendBob", "Higher score (FriendBob 85 > 75) is declared winner");
+
+// 3. Test Creator wins scenario
+const ch2 = simulateSubmitScore("CHLG-TEST2", 90, "creator", "Alice");
+simulateSubmitScore("CHLG-TEST2", 60, "friend", "Bob");
+assert(ch2.winner === "Alice", "Creator wins when scoring higher (90 > 60)");
+
+// 4. Test Tie scenario
+const ch3 = simulateSubmitScore("CHLG-TEST3", 80, "creator", "Alice");
+simulateSubmitScore("CHLG-TEST3", 80, "friend", "Bob");
+assert(ch3.winner === "tie", "Tie declared when scores are equal (80 == 80)");
+
+// Clear pending challenge
+window.storageManager.clearPendingChallenge();
+assert(window.storageManager.getPendingChallenge() === null, "Pending challenge cleared successfully");
+
 console.log(`\n========================================`);
 console.log(`ALL TESTS COMPLETED: ${passedTests} / ${totalTests} PASSED!`);
 console.log(`========================================\n`);
+

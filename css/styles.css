@@ -1252,3 +1252,141 @@ body {
   pointer-events: none;
   z-index: 999;
 }
+
+/* ==========================================================================
+   CHALLENGE MODE: SHARE LINK, PENDING BOX & SHOWDOWN BANNER
+   ========================================================================== */
+.challenge-link-box {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px dashed rgba(176, 132, 255, 0.4);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.challenge-link-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #dfc8ff;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.challenge-link-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.challenge-link-input {
+  flex: 1;
+  background: rgba(25, 29, 44, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: #e6e9f5;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  outline: none;
+  user-select: all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-copy-inline {
+  background: rgba(176, 132, 255, 0.2);
+  border: 1px solid #b084ff;
+  border-radius: 6px;
+  color: #fff;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-inline:hover {
+  background: #b084ff;
+  transform: scale(1.05);
+}
+
+.pending-challenge-box {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(120, 60, 220, 0.2) 0%, rgba(30, 20, 60, 0.4) 100%);
+  border: 1.5px solid #a855f7;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.pending-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e9d5ff;
+  font-size: 0.82rem;
+}
+
+.pending-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 8px #a855f7;
+  animation: pendingBlink 1.4s infinite;
+}
+
+@keyframes pendingBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+.pending-box-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Winner Banner in Challenge Showdown */
+.challenge-winner-banner {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255, 200, 59, 0.25) 0%, rgba(176, 132, 255, 0.25) 100%);
+  border: 2px solid var(--gold-glow);
+  border-radius: 12px;
+  padding: 12px 10px;
+  margin-bottom: 12px;
+  text-align: center;
+  box-shadow: 0 0 16px rgba(255, 200, 59, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.winner-crown {
+  font-size: 1.8rem;
+  animation: crownBounce 1.5s infinite;
+}
+
+@keyframes crownBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+#challengeWinnerNameText {
+  font-family: var(--font-marquee);
+  font-size: 1.1rem;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.winner-sub {
+  font-size: 0.75rem;
+  color: var(--gold-light);
+  font-weight: 600;
+}
